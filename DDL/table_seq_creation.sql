@@ -1,123 +1,144 @@
--- creating sequences for customer table
+SET SERVEROUTPUT ON;
+
+-- Sequence Cleanup
 DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE CUSTOMER_ID_SEQ MINVALUE 1800 MAXVALUE 2500 START WITH 1800 INCREMENT BY 5 CACHE 20';
+    sequence_names SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER_ID_SEQ', 'BRANCH_ID_SEQ', 'LOAN_TYPE_SEQ', 'LOAN_ID_SEQ',
+        'ACCOUNT_TYPE_SEQ', 'ACCOUNT_ID_SEQ', 'ROLE_ID_SEQ', 'EMPLOYEE_ID_SEQ', 'TRANSACTION_TYPE_SEQ', 'TRANSACTION_ID_SEQ');
+    sequence_not_exist EXCEPTION;
+    PRAGMA EXCEPTION_INIT (sequence_not_exist , -02289);
 BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'CUSTOMER_ID_SEQ';
-
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
+    DBMS_OUTPUT.ENABLE;
+    FOR i IN sequence_names.FIRST..sequence_names.LAST LOOP
+        BEGIN
+            DBMS_OUTPUT.PUT_LINE('Dropping Sequence: ' || sequence_names(i));
+            EXECUTE IMMEDIATE('DROP SEQUENCE ' || sequence_names(i));
+        EXCEPTION
+            WHEN sequence_not_exist THEN DBMS_OUTPUT.PUT_LINE('Sequence ' || sequence_names(i) || ' doesnt exist');
+        END;
+    END LOOP;
 END;
+/
 
--- creating sequences for branch table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE BRANCH_ID_SEQ MINVALUE 3600 MAXVALUE 4000 START WITH 3600 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'BRANCH_ID_SEQ';
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+CREATE SEQUENCE CUSTOMER_ID_SEQ      -- creating sequences for customer table 
 
--- creating sequences for loan_type table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE LOAN_TYPE_SEQ MINVALUE 1 MAXVALUE 10 START WITH 1 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'LOAN_TYPE_SEQ';
+  MINVALUE 1800 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  MAXVALUE 2500 
 
--- creating sequences for loan table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE LOAN_ID_SEQ MINVALUE 500 MAXVALUE 1000 START WITH 500 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'LOAN_ID_SEQ';
+  START WITH 1800 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  INCREMENT BY 5 
 
--- creating sequences for  account type table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE ACCOUNT_TYPE_SEQ MINVALUE 1 MAXVALUE 10 START WITH 1 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'ACCOUNT_TYPE_SEQ';
+  CACHE 20;
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+CREATE SEQUENCE BRANCH_ID_SEQ      -- creating sequences for branch table 
 
--- creating sequences for  account table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE ACCOUNT_ID_SEQ MINVALUE 100 MAXVALUE 2000 START WITH 101 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'ACCOUNT_ID_SEQ';
+  MINVALUE 3600 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  MAXVALUE 4000 
 
---creating sequences for role table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE ROLE_ID_SEQ MINVALUE 1 MAXVALUE 10 START WITH 1 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'ROLE_ID_SEQ';
+  START WITH 3600
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  INCREMENT BY 1 
 
---creating sequences for employee table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE EMPLOYEE_ID_SEQ MINVALUE 608 MAXVALUE 2000 START WITH 608 INCREMENT BY 3 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'EMPLOYEE_ID_SEQ';
+  CACHE 20;
+  
+CREATE SEQUENCE LOAN_TYPE_SEQ      -- creating sequences for loan_type table 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  MINVALUE 1 
 
---creating sequences for transaction type table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE TRANSACTION_TYPE_SEQ MINVALUE 1 MAXVALUE 20 START WITH 1 INCREMENT BY 1 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'TRANSACTION_TYPE_SEQ';
+  MAXVALUE 10 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  START WITH 1 
 
---creating sequences for transaction table
-DECLARE
-    t_count INTEGER;
-    v_sql VARCHAR2(150) := 'CREATE SEQUENCE TRANSACTION_ID_SEQ MINVALUE 10000 START WITH 10001 INCREMENT BY 3 CACHE 20';
-BEGIN
-    SELECT COUNT(*) INTO t_count FROM USER_SEQUENCES WHERE SEQUENCE_NAME = 'TRANSACTION_ID_SEQ';
+  INCREMENT BY 1 
 
-    IF t_count = 0 THEN
-        EXECUTE IMMEDIATE v_sql;
-    END IF;
-END;
+  CACHE 20;
+  
+CREATE SEQUENCE LOAN_ID_SEQ      -- creating sequences for loan table 
 
+  MINVALUE 500 
+
+  MAXVALUE 1000 
+
+  START WITH 500 
+
+  INCREMENT BY 1 
+
+  CACHE 20; 
+  
+CREATE SEQUENCE ACCOUNT_TYPE_SEQ      -- creating sequences for  account type table 
+
+  MINVALUE 1 
+
+  MAXVALUE 10 
+
+  START WITH 1 
+
+  INCREMENT BY 1 
+
+  CACHE 20;  
+
+CREATE SEQUENCE ACCOUNT_ID_SEQ      -- creating sequences for  account table 
+
+  MINVALUE 100 
+
+  MAXVALUE 2000 
+
+  START WITH 101 
+
+  INCREMENT BY 1 
+
+  CACHE 20;
+  
+CREATE SEQUENCE ROLE_ID_SEQ      -- creating sequences for role table 
+
+  MINVALUE 1 
+
+  MAXVALUE 10 
+
+  START WITH 1 
+
+  INCREMENT BY 1 
+
+  CACHE 20;
+
+CREATE SEQUENCE EMPLOYEE_ID_SEQ      -- creating sequences for employee table 
+
+  MINVALUE 608 
+
+  MAXVALUE 2000 
+
+  START WITH 608 
+
+  INCREMENT BY 3 
+
+  CACHE 20;
+  
+CREATE SEQUENCE TRANSACTION_TYPE_SEQ      -- creating sequences for transaction type table 
+
+  MINVALUE 1 
+
+  MAXVALUE 20 
+
+  START WITH 1 
+
+  INCREMENT BY 1 
+
+  CACHE 20;
+  
+CREATE SEQUENCE TRANSACTION_ID_SEQ      -- creating sequences for transaction table 
+
+  MINVALUE 10000 
+
+  MAXVALUE 20000 
+
+  START WITH 10001 
+
+  INCREMENT BY 1 
+
+  CACHE 20;
 
 -- Table Cleanup
 DECLARE
@@ -136,7 +157,7 @@ BEGIN
         END;
     END LOOP;
 END;
-
+/
 
 -- Table Creation
 CREATE TABLE CUSTOMER
