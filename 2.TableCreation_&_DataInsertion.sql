@@ -4550,7 +4550,7 @@ CREATE OR REPLACE VIEW V_AGG_HOURLY_TRANSACTIONS_BY_TYPE_16th_March AS
              JOIN transaction_type ty ON tr.transaction_type = ty.transaction_type_id
     WHERE TRUNC(tr.time_stamp, 'HH24') = TO_DATE('16-MAR-2023 21:00:00', 'DD-MON-YYYY HH24:MI:SS') - INTERVAL '1' HOUR
       AND tr.Status != 'Failed'
-    GROUP BY ty.transaction_type
+    GROUP BY ty.transaction_type 
     ORDER BY ty.transaction_type;
 
 --V_AGG_HOURLY_TRANSACTIONS_BY_TYPE: Fetch the aggregate of the
