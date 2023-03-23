@@ -279,40 +279,6 @@ CREATE TABLE TRANSACTION_TABLE
 );
 
 
--- Grant access privileges to Customer User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO customer_user');
-    END LOOP;
-END;
-
--- Grant access privileges to Employee User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE',
-        'BRANCH', 'EMPLOYEE', 'TRANSACTION_TYPE', 'STATUS_CODE', 'LOAN_TYPE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT INSERT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT UPDATE ON ' || tables_list(i) || ' TO employee_user');
-    END LOOP;
-END;
-
--- Grant access privileges to Manager User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE',
-        'BRANCH', 'EMPLOYEE', 'TRANSACTION_TYPE', 'STATUS_CODE', 'LOAN_TYPE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT INSERT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT UPDATE ON ' || tables_list(i) || ' TO employee_user');
-    END LOOP;
-END;
-
-
 -- Records Insertion
 INSERT INTO CUSTOMER (FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL_ID, PHONE_NUMBER, DATE_REGISTERED, ANNUAL_INCOME,
                       LOGIN, PASSWORD_HASH, ADDRESS, CITY, STATE_NAME)
