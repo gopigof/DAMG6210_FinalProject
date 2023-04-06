@@ -279,40 +279,6 @@ CREATE TABLE TRANSACTION_TABLE
 );
 
 
--- Grant access privileges to Customer User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO customer_user');
-    END LOOP;
-END;
-
--- Grant access privileges to Employee User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE',
-        'BRANCH', 'EMPLOYEE', 'TRANSACTION_TYPE', 'STATUS_CODE', 'LOAN_TYPE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT INSERT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT UPDATE ON ' || tables_list(i) || ' TO employee_user');
-    END LOOP;
-END;
-
--- Grant access privileges to Manager User
-DECLARE
-    tables_list SYS.DBMS_DEBUG_VC2COLL := SYS.DBMS_DEBUG_VC2COLL('CUSTOMER', 'ACCOUNTS', 'LOAN', 'TRANSACTION_TABLE',
-        'BRANCH', 'EMPLOYEE', 'TRANSACTION_TYPE', 'STATUS_CODE', 'LOAN_TYPE');
-BEGIN
-    FOR i IN tables_list.FIRST..tables_list.LAST LOOP
-        EXECUTE IMMEDIATE('GRANT SELECT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT INSERT ON ' || tables_list(i) || ' TO employee_user');
-        EXECUTE IMMEDIATE('GRANT UPDATE ON ' || tables_list(i) || ' TO employee_user');
-    END LOOP;
-END;
-
-
 -- Records Insertion
 INSERT INTO CUSTOMER (FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL_ID, PHONE_NUMBER, DATE_REGISTERED, ANNUAL_INCOME,
                       LOGIN, PASSWORD_HASH, ADDRESS, CITY, STATE_NAME)
@@ -4883,7 +4849,22 @@ JOIN role_table r ON e.role_id = r.role_id
 JOIN branch b ON e.branch_id = b.branch_id
 LEFT JOIN employee m ON e.manager_id = m.employee_id
 GROUP BY e.employee_id, e.first_name, e.last_name, e.email_id, e.phone_number, r.position_name, b.branch_name, m.first_name, m.last_name, m.email_id, m.phone_number
-ORDER BY e.employee_id, e.first_name;        
+ORDER BY e.employee_id, e.first_name;   
+
+--V OVERDRAFT_ACCOUNTS: Fetch all the accounts that are currently in overdraft status.
+CREATE OR REPLACE VIEW V_OVERDRAFT_ACCOUNTS AS
+SELECT a.account_id, c.customer_id, c.first_name || ' ' || c.last_name AS customer_name, a.balance FROM accounts a
+JOIN customer c on c.customer_id=a.customer_id
+WHERE balance < 0;
+
+--V_AGG_OVERDRAFT_ACCOUNTS_BY_BRANCH: Fetch the aggregate of all
+--accounts that are in overdraft status grouped by the branch.
+CREATE OR REPLACE VIEW V_AGG_OVERDRAFT_ACCOUNTS_BY_BRANCH AS
+SELECT b.branch_id, b.branch_name, COUNT(a.account_id) AS num_overdraft_accounts, SUM(a.balance) AS total_overdraft_balance
+FROM accounts a
+JOIN branch b ON a.branch_id = b.branch_id
+WHERE a.balance < 0
+GROUP BY b.branch_id, b.branch_name;
 
 BEGIN
     FOR t IN (
@@ -5009,3 +4990,7 @@ SELECT * FROM V_TRANSACTION_DETAILS;
 SELECT * FROM V_LOANS_CUSTOMER_INFO;
 
 SELECT * FROM V_EMPLOYEE_POSITION_INFO;
+
+SELECT * FROM V_OVERDRAFT_ACCOUNTS;
+
+SELECT * FROM V_AGG_OVERDRAFT_ACCOUNTS_BY_BRANCH;
