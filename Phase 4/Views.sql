@@ -301,3 +301,32 @@ JOIN branch b ON a.branch_id = b.branch_id
 JOIN loan_type lt ON l.loan_type = lt.loan_type_id
 GROUP BY l.loan_id, c.email_id, c.address, c.first_name || ' ' || c.last_name, b.branch_name, b.branch_code, lt.loan_type_id, lt.loan_description
 ORDER BY l.loan_id, c.email_id;
+
+--V_EMPLOYEE_POSITION_INFO: Fetches all employees with their position
+--information, branch name, and manager name, as well as associated manager's email
+--address and phone number, grouped by employee.
+CREATE OR REPLACE VIEW V_EMPLOYEE_POSITION_INFO AS
+SELECT e.employee_id, e.first_name || ' ' || e.last_name AS employee_name, e.email_id, e.phone_number, r.position_name, b.branch_name, m.first_name || ' ' || m.last_name AS manager_name, m.email_id AS manager_email, m.phone_number AS manager_phone
+FROM employee e
+JOIN role_table r ON e.role_id = r.role_id
+JOIN branch b ON e.branch_id = b.branch_id
+LEFT JOIN employee m ON e.manager_id = m.employee_id
+GROUP BY e.employee_id, e.first_name, e.last_name, e.email_id, e.phone_number, r.position_name, b.branch_name, m.first_name, m.last_name, m.email_id, m.phone_number
+ORDER BY e.employee_id, e.first_name;   
+
+--V OVERDRAFT_ACCOUNTS: Fetch all the accounts that are currently in overdraft status.
+CREATE OR REPLACE VIEW V_OVERDRAFT_ACCOUNTS AS
+SELECT a.account_id, c.customer_id, c.first_name || ' ' || c.last_name AS customer_name, a.balance FROM accounts a
+JOIN customer c on c.customer_id=a.customer_id
+WHERE balance < 0;
+
+--V_AGG_OVERDRAFT_ACCOUNTS_BY_BRANCH: Fetch the aggregate of all
+--accounts that are in overdraft status grouped by the branch.
+CREATE OR REPLACE VIEW V_AGG_OVERDRAFT_ACCOUNTS_BY_BRANCH AS
+SELECT b.branch_id, b.branch_name, COUNT(a.account_id) AS num_overdraft_accounts, SUM(a.balance) AS total_overdraft_balance
+FROM accounts a
+JOIN branch b ON a.branch_id = b.branch_id
+WHERE a.balance < 0
+GROUP BY b.branch_id, b.branch_name;
+
+-------------------------------------------------------------------------------------------
