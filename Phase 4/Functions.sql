@@ -58,3 +58,18 @@ BEGIN
     RETURN v_full_name;
 END GET_EMPLOYEE_FULL_NAME;
 /
+
+CREATE OR REPLACE FUNCTION GET_CUSTOMER_LOAN_COUNT (
+    p_customer_id IN LOAN.CUSTOMER_ID%TYPE
+) RETURN NUMBER
+IS
+    v_loan_count NUMBER := 0;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_loan_count
+    FROM LOAN
+    WHERE CUSTOMER_ID = p_customer_id;
+
+    RETURN v_loan_count;
+END GET_CUSTOMER_LOAN_COUNT;
+/
