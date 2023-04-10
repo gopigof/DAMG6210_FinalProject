@@ -311,4 +311,158 @@ CREATE OR REPLACE PACKAGE BODY EMPLOYEE_MGMT_PKG IS
     
 END EMPLOYEE_MGMT_PKG;
 /
--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE PACKAGE ACCOUNT_MGMT_PKG AS
+
+    -- Add a new account if it doesn't already exist
+    PROCEDURE ADD_NEW_ACCOUNT (
+        p_customer_id      IN ACCOUNTS.CUSTOMER_ID%TYPE,
+        p_account_type     IN ACCOUNTS.ACCOUNT_TYPE%TYPE,
+        p_branch_id        IN ACCOUNTS.BRANCH_ID%TYPE,
+        p_created_date     IN ACCOUNTS.CREATED_DATE%TYPE,
+        p_balance          IN ACCOUNTS.BALANCE%TYPE,
+        p_card_details     IN ACCOUNTS.CARD_DETAILS%TYPE,
+        p_proof            IN ACCOUNTS.PROOF%TYPE
+    );
+    
+    -- Check if an account exists by account ID
+    FUNCTION ACCOUNT_EXISTS (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN NUMBER;
+    
+    -- Get account balance for a specific account
+    FUNCTION GET_ACCOUNT_BALANCE (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN NUMBER;  
+    
+    FUNCTION GET_BANK_STATEMENT (
+        p_account_id IN TRANSACTION_TABLE.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR;
+    
+    -- Get the latest transaction for a specific account
+    FUNCTION GET_LATEST_TRANSACTION (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR;
+
+    -- Get the last 5 transactions for a specific account
+    FUNCTION GET_LIKELIEST_5_TRANSACTIONS (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR;
+
+END ACCOUNT_MGMT_PKG;
+/
+
+CREATE OR REPLACE PACKAGE BODY ACCOUNT_MGMT_PKG AS
+
+    PROCEDURE ADD_NEW_ACCOUNT (
+        p_customer_id      IN ACCOUNTS.CUSTOMER_ID%TYPE,
+        p_account_type     IN ACCOUNTS.ACCOUNT_TYPE%TYPE,
+        p_branch_id        IN ACCOUNTS.BRANCH_ID%TYPE,
+        p_created_date     IN ACCOUNTS.CREATED_DATE%TYPE,
+        p_balance          IN ACCOUNTS.BALANCE%TYPE,
+        p_card_details     IN ACCOUNTS.CARD_DETAILS%TYPE,
+        p_proof            IN ACCOUNTS.PROOF%TYPE
+    ) IS
+        v_account_count NUMBER;
+        account_exists EXCEPTION;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_account_count
+        FROM ACCOUNTS
+        WHERE CUSTOMER_ID = p_customer_id AND ACCOUNT_TYPE = p_account_type;
+
+        IF v_account_count > 0 THEN
+            RAISE account_exists;
+        ELSE
+            INSERT INTO ACCOUNTS (
+                CUSTOMER_ID, ACCOUNT_TYPE, BRANCH_ID, CREATED_DATE, BALANCE, CARD_DETAILS, PROOF
+            )
+            VALUES (
+                p_customer_id, p_account_type, p_branch_id, p_created_date, p_balance, p_card_details, p_proof
+            );
+        END IF;
+
+        EXCEPTION
+            WHEN account_exists THEN
+                RAISE_APPLICATION_ERROR(-20002, 'An account with the same customer ID and account type already exists.');
+    END ADD_NEW_ACCOUNT;
+
+    FUNCTION ACCOUNT_EXISTS (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN NUMBER IS
+        v_account_count NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_account_count
+        FROM ACCOUNTS
+        WHERE ACCOUNT_ID = p_account_id;
+
+        IF v_account_count > 0 THEN
+            RETURN 1;
+        ELSE
+            RETURN 0;
+        END IF;
+    END ACCOUNT_EXISTS;
+
+    FUNCTION GET_ACCOUNT_BALANCE (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN NUMBER IS
+        v_balance NUMBER;
+    BEGIN
+        SELECT BALANCE
+        INTO v_balance
+        FROM ACCOUNTS
+        WHERE ACCOUNT_ID = p_account_id;
+
+        RETURN v_balance;
+    END GET_ACCOUNT_BALANCE;
+    
+    FUNCTION GET_BANK_STATEMENT (
+        p_account_id IN TRANSACTION_TABLE.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR IS
+        v_statement SYS_REFCURSOR;
+        v_start_date TIMESTAMP := TRUNC(SYSDATE, 'MONTH') - INTERVAL '1' MONTH;
+        v_end_date TIMESTAMP := TRUNC(SYSDATE);
+    BEGIN
+        OPEN v_statement FOR
+        SELECT tt.TRANSACTION_ID, tt.ACCOUNT_ID, tt.TIME_STAMP, tt.AMOUNT, tt.TRANSACTION_DETAILS, tt.STATUS
+        FROM TRANSACTION_TABLE tt
+        WHERE tt.ACCOUNT_ID = p_account_id
+          AND tt.TIME_STAMP BETWEEN v_start_date AND v_end_date;
+
+        RETURN v_statement;
+    END GET_BANK_STATEMENT;
+    
+    FUNCTION GET_LATEST_TRANSACTION (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR IS
+        v_latest_transaction SYS_REFCURSOR;
+    BEGIN
+        OPEN v_latest_transaction FOR
+        SELECT *
+        FROM TRANSACTION_TABLE
+        WHERE ACCOUNT_ID = p_account_id
+        ORDER BY TIME_STAMP DESC
+        FETCH NEXT 1 ROWS ONLY;
+
+        RETURN v_latest_transaction;
+    END GET_LATEST_TRANSACTION;
+
+    FUNCTION GET_LIKELIEST_5_TRANSACTIONS (
+        p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE
+    ) RETURN SYS_REFCURSOR IS
+        v_last_5_transactions SYS_REFCURSOR;
+    BEGIN
+        OPEN v_last_5_transactions FOR
+        SELECT *
+        FROM TRANSACTION_TABLE
+        WHERE ACCOUNT_ID = p_account_id
+        ORDER BY TIME_STAMP DESC
+        FETCH NEXT 5 ROWS ONLY;
+
+        RETURN v_last_5_transactions;
+    END GET_LIKELIEST_5_TRANSACTIONS;
+
+END ACCOUNT_MGMT_PKG;
+/
+------------------------------------------------------------------------------------------
