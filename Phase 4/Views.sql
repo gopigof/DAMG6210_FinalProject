@@ -174,3 +174,75 @@ CREATE OR REPLACE VIEW V_AGG_DAILY_FAILED_TRANSACTIONS_BY_BRANCH AS
       AND T.Status = 'Failed'
     GROUP BY B.branch_name, tr.transaction_type
     ORDER BY B.branch_name, tr.transaction_type;
+    
+--V_AGG_HOURLY_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last hour from 9PM of 16th March 2023 across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_HOURLY_TRANSACTIONS_BY_BRANCH_16th_March AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp, 'HH24') = TO_DATE('16-MAR-2023 21:00:00', 'DD-MON-YYYY HH24:MI:SS') - INTERVAL '1' HOUR
+      AND T.Status != 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_HOURLY_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last hour from current timestamp across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_HOURLY_TRANSACTIONS_BY_BRANCH AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE T.time_stamp BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE - INTERVAL '1' SECOND
+      AND T.Status != 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_HOURLY_FAILED_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last hour from  9PM of 16th March 2023 across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_HOURLY_FAILED_TRANSACTIONS_BY_BRANCH_16th_March AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           AS total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp, 'HH24') = TO_DATE('16-MAR-2023 21:00:00', 'DD-MON-YYYY HH24:MI:SS') - INTERVAL '1' HOUR
+      AND T.Status = 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_HOURLY_FAILED_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last hour from  current timestamp across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_HOURLY_FAILED_TRANSACTIONS_BY_BRANCH AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           AS total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE T.time_stamp BETWEEN SYSDATE - INTERVAL '1' HOUR AND SYSDATE - INTERVAL '1' SECOND
+      AND T.Status = 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
