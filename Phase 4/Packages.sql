@@ -610,3 +610,59 @@ CREATE OR REPLACE PACKAGE BODY LOAN_MGMT_PKG AS
 END LOAN_MGMT_PKG;
 /
 -------------------------------------------------------------------------------------------
+CREATE OR REPLACE PACKAGE TRANSACTION_MGMT_PKG AS
+    -- Add a new transaction
+    PROCEDURE ADD_TRANSACTION (
+        p_account_id IN TRANSACTION_TABLE.ACCOUNT_ID%TYPE,
+        p_status_code IN TRANSACTION_TABLE.STATUS_CODE%TYPE,
+        p_transaction_type IN TRANSACTION_TABLE.TRANSACTION_TYPE%TYPE,
+        p_amount IN TRANSACTION_TABLE.AMOUNT%TYPE,
+        p_time_stamp IN TRANSACTION_TABLE.TIME_STAMP%TYPE,
+        p_transaction_details IN TRANSACTION_TABLE.TRANSACTION_DETAILS%TYPE,
+        p_status IN TRANSACTION_TABLE.STATUS%TYPE
+    );
+    
+    -- Get transaction details for a specific transaction
+    FUNCTION GET_TRANSACTION_DETAILS (
+        p_transaction_id IN TRANSACTION_TABLE.TRANSACTION_ID%TYPE
+    ) RETURN SYS_REFCURSOR;
+    
+END TRANSACTION_MGMT_PKG;
+/
+
+CREATE OR REPLACE PACKAGE BODY TRANSACTION_MGMT_PKG AS
+    -- Add a new transaction
+    PROCEDURE ADD_TRANSACTION (
+        p_account_id IN TRANSACTION_TABLE.ACCOUNT_ID%TYPE,
+        p_status_code IN TRANSACTION_TABLE.STATUS_CODE%TYPE,
+        p_transaction_type IN TRANSACTION_TABLE.TRANSACTION_TYPE%TYPE,
+        p_amount IN TRANSACTION_TABLE.AMOUNT%TYPE,
+        p_time_stamp IN TRANSACTION_TABLE.TIME_STAMP%TYPE,
+        p_transaction_details IN TRANSACTION_TABLE.TRANSACTION_DETAILS%TYPE,
+        p_status IN TRANSACTION_TABLE.STATUS%TYPE
+    ) IS
+    BEGIN
+        INSERT INTO TRANSACTION_TABLE (
+            ACCOUNT_ID, STATUS_CODE, TRANSACTION_TYPE, AMOUNT, TIME_STAMP, TRANSACTION_DETAILS, STATUS
+        ) VALUES (
+            p_account_id, p_status_code, p_transaction_type, p_amount, p_time_stamp, p_transaction_details, p_status
+        );
+    END ADD_TRANSACTION;
+    
+    -- Get transaction details for a specific transaction
+    FUNCTION GET_TRANSACTION_DETAILS (
+        p_transaction_id IN TRANSACTION_TABLE.TRANSACTION_ID%TYPE
+    ) RETURN SYS_REFCURSOR IS
+        v_transaction_details SYS_REFCURSOR;
+    BEGIN
+        OPEN v_transaction_details FOR
+        SELECT *
+        FROM TRANSACTION_TABLE
+        WHERE TRANSACTION_ID = p_transaction_id;
+        
+        RETURN v_transaction_details;
+    END GET_TRANSACTION_DETAILS;
+    
+END TRANSACTION_MGMT_PKG;
+/
+-------------------------------------------------------------------------------------------
