@@ -61,3 +61,35 @@ BEGIN
       
    END IF;  
 END;
+
+CREATE OR REPLACE TRIGGER transaction_failure
+AFTER INSERT ON transaction_table
+FOR EACH ROW
+BEGIN  
+   IF (:new.status = 'Failed') THEN
+      IF (:new.status_code = '06') THEN
+         DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful due to some error.');
+      END IF;
+   
+      IF (:new.status_code = '12') THEN
+         DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful as it is an invalid transaction.');
+      END IF;
+   
+      IF (:new.status_code = '13') THEN
+         DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful because an invalid amount was entered.');
+      END IF;
+   
+      IF (:new.status_code = '14') THEN
+        DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful because of invalid card number.');
+      END IF;
+   
+      IF (:new.status_code = '51') THEN
+         DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful because of insufficient funds.');
+      END IF;
+   
+      IF (:new.status_code = '54') THEN
+         DBMS_OUTPUT.PUT_LINE('Transaction ' || :new.transaction_id || ' was unsuccessful because of expired card.');
+      END IF;
+      
+   END IF;
+END;
