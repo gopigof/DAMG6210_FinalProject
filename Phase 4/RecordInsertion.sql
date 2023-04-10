@@ -64,3 +64,44 @@ BEGIN
     
 END;
 /
+
+-- Insert Branch records using ADD_NEW_BRANCH Procedure
+BEGIN
+    ADD_NEW_BRANCH('Central Branch', 'CENBR01', '123 Central St', 'Boston', 'Massachusetts', '9876543210', 'central.branch@email.com');
+    ADD_NEW_BRANCH('Westside Branch', 'WESBR01', '456 Westside Ave', 'Springfield', 'Massachusetts', '9876543211', 'westside.branch@email.com');
+END;
+/
+
+-- Insert Loan_Type records using ADD_NEW_LOAN_TYPE Procedure
+BEGIN
+    ADD_NEW_LOAN_TYPE('Personal Loan', 'Unsecured loan for personal expenses');
+    ADD_NEW_LOAN_TYPE('Mortgage Loan', 'Loan for home purchase, secured by the property');
+    ADD_NEW_LOAN_TYPE('Auto Loan', 'Loan for vehicle purchase, secured by the vehicle');
+    ADD_NEW_LOAN_TYPE('Student Loan', 'Loan for educational expenses, often with lower interest rates');
+    ADD_NEW_LOAN_TYPE('Business Loan', 'Loan for business expenses, often secured by business assets');
+    ADD_NEW_LOAN_TYPE('Home Equity Loan', 'Loan based on the equity in the borrower''s home, secured by the property');
+END;
+/
+
+-- Insert Loan records using LOAN_MGMT_PKG 
+BEGIN
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1810, 1, 3600, 15000, 6.0, 48, TO_DATE('2023-01-15', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1835, 2, 3601, 250000, 3.75, 360, TO_DATE('2023-02-10', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1820, 4, 3600, 60000, 4.5, 120, TO_DATE('2023-01-25', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1845, 3, 3600, 18000, 5.25, 60, TO_DATE('2023-02-15', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1800, 1, 3600, 8000, 7.0, 36, TO_DATE('2023-01-15', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1805, 5, 3601, 50000, 5.5, 84, TO_DATE('2023-02-10', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1825, 2, 3600, 300000, 4.0, 360, TO_DATE('2023-02-28', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1845, 6, 3601, 70000, 4.75, 120, TO_DATE('2023-03-20', 'YYYY-MM-DD'));
+    LOAN_MGMT_PKG.ADD_NEW_LOAN(1810, 3, 3600, 12000, 5.0, 48, TO_DATE('2023-02-05', 'YYYY-MM-DD'));
+END;
+/
+
+-- Insert Account_type records using ADD_NEW_ACCOUNT_TYPE Procedure
+BEGIN
+    ADD_NEW_ACCOUNT_TYPE('Savings Account', 1.5);
+    ADD_NEW_ACCOUNT_TYPE('Checking Account', 0.25);
+    ADD_NEW_ACCOUNT_TYPE('High-Yield Savings Account', 3);
+    ADD_NEW_ACCOUNT_TYPE('Student Account', 0);
+END;
+/
