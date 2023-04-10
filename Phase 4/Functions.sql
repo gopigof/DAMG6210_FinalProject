@@ -108,3 +108,18 @@ BEGIN
     RETURN v_employee_count;
 END GET_EMPLOYEE_COUNT_BY_BRANCH;
 /
+
+CREATE OR REPLACE FUNCTION GET_ACCOUNT_COUNT_BY_TYPE (
+    p_account_type IN ACCOUNTS.ACCOUNT_TYPE%TYPE
+) RETURN NUMBER
+IS
+    v_account_count NUMBER := 0;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_account_count
+    FROM ACCOUNTS
+    WHERE ACCOUNT_TYPE = p_account_type;
+
+    RETURN v_account_count;
+END GET_ACCOUNT_COUNT_BY_TYPE;
+/
