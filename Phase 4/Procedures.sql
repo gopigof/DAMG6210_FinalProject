@@ -59,3 +59,30 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Loan type already exists.');
 END ADD_NEW_LOAN_TYPE;
 /
+
+-- Procedure to insert Account_Type
+CREATE OR REPLACE PROCEDURE ADD_NEW_ACCOUNT_TYPE (
+    p_account_type  IN ACCOUNT_TYPE.ACCOUNT_TYPE%TYPE,
+    p_interest_rate IN ACCOUNT_TYPE.INTEREST_RATE%TYPE
+)
+IS
+    v_account_type_count NUMBER;
+    account_type_exists EXCEPTION;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_account_type_count
+    FROM ACCOUNT_TYPE
+    WHERE ACCOUNT_TYPE = p_account_type;
+
+    IF v_account_type_count > 0 THEN
+        RAISE account_type_exists;
+    ELSE
+        INSERT INTO ACCOUNT_TYPE (ACCOUNT_TYPE, INTEREST_RATE)
+        VALUES (p_account_type, p_interest_rate);
+    END IF;
+
+    EXCEPTION
+        WHEN account_type_exists THEN
+            DBMS_OUTPUT.PUT_LINE('Account type already exists.');
+END ADD_NEW_ACCOUNT_TYPE;
+/
