@@ -86,3 +86,30 @@ BEGIN
             DBMS_OUTPUT.PUT_LINE('Account type already exists.');
 END ADD_NEW_ACCOUNT_TYPE;
 /
+
+-- Procedure to insert Roles
+CREATE OR REPLACE PROCEDURE ADD_NEW_ROLE (
+    p_position_name IN ROLE_TABLE.POSITION_NAME%TYPE,
+    p_salary        IN ROLE_TABLE.SALARY%TYPE
+)
+IS
+    v_role_count NUMBER;
+    role_exists EXCEPTION;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_role_count
+    FROM ROLE_TABLE
+    WHERE POSITION_NAME = p_position_name;
+
+    IF v_role_count > 0 THEN
+        RAISE role_exists;
+    ELSE
+        INSERT INTO ROLE_TABLE (POSITION_NAME, SALARY)
+        VALUES (p_position_name, p_salary);
+    END IF;
+
+    EXCEPTION
+        WHEN role_exists THEN
+            DBMS_OUTPUT.PUT_LINE('Role already exists.');
+END ADD_NEW_ROLE;
+/
