@@ -1,3 +1,4 @@
+-------------------------------------------------------------------------------------------
 -- Create Triggers
 CREATE OR REPLACE TRIGGER transaction_success_debit
 AFTER INSERT ON transaction_table
@@ -13,6 +14,7 @@ BEGIN
       
    END IF;
 END;
+/
 
 CREATE OR REPLACE TRIGGER transaction_success_receive
 AFTER INSERT ON transaction_table
@@ -30,15 +32,16 @@ BEGIN
 
    END IF;
 END;
+/
 
 CREATE OR REPLACE TRIGGER transaction_success_transfer
 AFTER INSERT ON transaction_table
 FOR EACH ROW 
 DECLARE
-   transfer_type CHAR(30);
+   transfer_type_suc CHAR(30);
 BEGIN
-   transfer_type := SUBSTR(:new.transaction_details, 1,11);
-   IF (transfer_type = 'Transfer to') AND (:new.status = 'Completed') AND (:new.status_code = '00') AND (:new.transaction_type = 3) THEN
+   transfer_type_suc := SUBSTR(:new.transaction_details, 1,13);
+   IF (transfer_type_suc != 'Transfer from') AND (:new.status = 'Completed') AND (:new.status_code = '00') AND (:new.transaction_type = 3) THEN
       UPDATE accounts
       SET balance = balance - :new.amount
       WHERE account_id = :new.account_id;
@@ -47,6 +50,7 @@ BEGIN
       
    END IF;
 END;
+/
 
 CREATE OR REPLACE TRIGGER transaction_success_credit
 AFTER INSERT ON transaction_table
@@ -61,6 +65,7 @@ BEGIN
       
    END IF;  
 END;
+/
 
 CREATE OR REPLACE TRIGGER transaction_failure
 AFTER INSERT ON transaction_table
@@ -93,3 +98,5 @@ BEGIN
       
    END IF;
 END;
+/
+-------------------------------------------------------------------------------------------
