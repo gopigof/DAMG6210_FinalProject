@@ -1703,3 +1703,208 @@ CREATE OR REPLACE PACKAGE BODY MANAGER_PKG AS
 END MANAGER_PKG;
 /
 -------------------------------------------------------------------------------------------
+-- Package Specification
+CREATE OR REPLACE PACKAGE CUSTOMER_PKG AS
+  PROCEDURE view_customer_info(p_customer_id NUMBER);
+  PROCEDURE view_accounts(p_customer_id NUMBER);
+  PROCEDURE view_transactions(p_customer_id NUMBER);
+  PROCEDURE view_loans(p_customer_id NUMBER);
+  PROCEDURE view_transactions_by_account_id_only(p_account_id NUMBER);
+  PROCEDURE view_latest_5_transactions(p_account_id NUMBER);
+  PROCEDURE view_last_transaction(p_account_id NUMBER);
+  PROCEDURE view_customer_latest_5_transactions(p_customer_id NUMBER);
+  PROCEDURE view_customer_last_transaction(p_customer_id NUMBER);
+END CUSTOMER_PKG;
+/
+
+-- Package Body
+CREATE OR REPLACE PACKAGE BODY CUSTOMER_PKG AS
+
+  PROCEDURE view_customer_info(p_customer_id NUMBER) IS
+    CURSOR customer_info IS
+      SELECT *
+      FROM CUSTOMER
+      WHERE CUSTOMER_ID = p_customer_id;
+    v_customer_info customer_info%ROWTYPE;
+  BEGIN
+    OPEN customer_info;
+    FETCH customer_info INTO v_customer_info;
+    CLOSE customer_info;
+
+    DBMS_OUTPUT.PUT_LINE('Customer ID: ' || v_customer_info.CUSTOMER_ID || ', First Name: ' || v_customer_info.FIRST_NAME || ', Last Name: ' || v_customer_info.LAST_NAME || ', Date of Birth: ' || v_customer_info.DATE_OF_BIRTH || ', Email ID: ' || v_customer_info.EMAIL_ID || ', Phone Number: ' || v_customer_info.PHONE_NUMBER || ', Date Registered: ' || v_customer_info.DATE_REGISTERED || ', Annual Income: ' || v_customer_info.ANNUAL_INCOME || ', Login: ' || v_customer_info.LOGIN || ', Password Hash: ' || v_customer_info.PASSWORD_HASH || ', Address: ' || v_customer_info.ADDRESS || ', City: ' || v_customer_info.CITY || ', State Name: ' || v_customer_info.STATE_NAME);
+  END view_customer_info;
+
+  PROCEDURE view_accounts(p_customer_id NUMBER) IS
+    CURSOR customer_accounts IS
+      SELECT *
+      FROM ACCOUNTS
+      WHERE CUSTOMER_ID = p_customer_id;
+    v_customer_accounts customer_accounts%ROWTYPE;
+  BEGIN
+    OPEN customer_accounts;
+    LOOP
+      FETCH customer_accounts INTO v_customer_accounts;
+      EXIT WHEN customer_accounts%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Account ID: ' || v_customer_accounts.ACCOUNT_ID || ', Customer ID: ' || v_customer_accounts.CUSTOMER_ID || ', Account Type: ' || v_customer_accounts.ACCOUNT_TYPE || ', Branch ID: ' || v_customer_accounts.BRANCH_ID || ', Created Date: ' || v_customer_accounts.CREATED_DATE || ', Balance: ' || v_customer_accounts.BALANCE || ', Card Details: ' || v_customer_accounts.CARD_DETAILS || ', Proof: ' || v_customer_accounts.PROOF);
+    END LOOP;
+    CLOSE customer_accounts;
+  END view_accounts;
+
+  PROCEDURE view_transactions(p_customer_id NUMBER) IS
+    CURSOR customer_transactions IS
+      SELECT t.*
+      FROM TRANSACTION_TABLE t
+      JOIN ACCOUNTS a ON t.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE a.CUSTOMER_ID = p_customer_id;
+    v_customer_transactions customer_transactions%ROWTYPE;
+  BEGIN
+    OPEN customer_transactions;
+    LOOP
+      FETCH customer_transactions INTO v_customer_transactions;
+      EXIT WHEN customer_transactions%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_customer_transactions.TRANSACTION_ID || ', Account ID: ' || v_customer_transactions.ACCOUNT_ID || ', Status Code: ' || v_customer_transactions.STATUS_CODE || ', Transaction Type: ' || v_customer_transactions.TRANSACTION_TYPE || ', Amount: ' || v_customer_transactions.AMOUNT || ', Time Stamp: ' || v_customer_transactions.TIME_STAMP || ', Transaction Details: ' || v_customer_transactions.TRANSACTION_DETAILS || ', Status: ' || v_customer_transactions.STATUS);
+    END LOOP;
+    CLOSE customer_transactions;
+  END view_transactions;
+
+  PROCEDURE view_loans(p_customer_id NUMBER) IS
+    CURSOR customer_loans IS
+      SELECT *
+      FROM LOAN
+      WHERE CUSTOMER_ID = p_customer_id;
+    v_customer_loans customer_loans%ROWTYPE;
+  BEGIN
+    OPEN customer_loans;
+    LOOP
+      FETCH customer_loans INTO v_customer_loans;
+      EXIT WHEN customer_loans%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Loan ID: ' || v_customer_loans.LOAN_ID || ', Customer ID: ' || v_customer_loans.CUSTOMER_ID || ', Loan Type: ' || v_customer_loans.LOAN_TYPE || ', Branch ID: ' || v_customer_loans.BRANCH_ID || ', Amount: ' || v_customer_loans.AMOUNT || ', Interest Rate: ' || v_customer_loans.INTEREST_RATE || ', Term in Months: ' || v_customer_loans.TERM_IN_MONTHS || ', Commencement Date: ' || v_customer_loans.COMMENCEMENT_DATE);
+    END LOOP;
+    CLOSE customer_loans;
+  END view_loans;
+
+  PROCEDURE view_transactions_by_account_id(p_customer_id NUMBER, p_account_id NUMBER) IS
+    CURSOR customer_transactions_by_account IS
+      SELECT t.*
+      FROM TRANSACTION_TABLE t
+      JOIN ACCOUNTS a ON t.ACCOUNT_ID = a.ACCOUNT_ID
+      WHERE a.CUSTOMER_ID = p_customer_id AND a.ACCOUNT_ID = p_account_id;
+    v_customer_transactions_by_account customer_transactions_by_account%ROWTYPE;
+  BEGIN
+    OPEN customer_transactions_by_account;
+    LOOP
+      FETCH customer_transactions_by_account INTO v_customer_transactions_by_account;
+      EXIT WHEN customer_transactions_by_account%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_customer_transactions_by_account.TRANSACTION_ID || ', Account ID: ' || v_customer_transactions_by_account.ACCOUNT_ID || ', Status Code: ' || v_customer_transactions_by_account.STATUS_CODE || ', Transaction Type: ' || v_customer_transactions_by_account.TRANSACTION_TYPE || ', Amount: ' || v_customer_transactions_by_account.AMOUNT || ', Time Stamp: ' || v_customer_transactions_by_account.TIME_STAMP || ', Transaction Details: ' || v_customer_transactions_by_account.TRANSACTION_DETAILS || ', Status: ' || v_customer_transactions_by_account.STATUS);
+    END LOOP;
+    CLOSE customer_transactions_by_account;
+  END view_transactions_by_account_id;
+  
+  PROCEDURE view_transactions_by_account_id_only(p_account_id NUMBER) IS
+    CURSOR account_transactions IS
+      SELECT *
+      FROM TRANSACTION_TABLE
+      WHERE ACCOUNT_ID = p_account_id;
+    v_account_transactions account_transactions%ROWTYPE;
+  BEGIN
+    OPEN account_transactions;
+    LOOP
+      FETCH account_transactions INTO v_account_transactions;
+      EXIT WHEN account_transactions%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_account_transactions.TRANSACTION_ID || ', Account ID: ' || v_account_transactions.ACCOUNT_ID || ', Status Code: ' || v_account_transactions.STATUS_CODE || ', Transaction Type: ' || v_account_transactions.TRANSACTION_TYPE || ', Amount: ' || v_account_transactions.AMOUNT || ', Time Stamp: ' || v_account_transactions.TIME_STAMP || ', Transaction Details: ' || v_account_transactions.TRANSACTION_DETAILS || ', Status: ' || v_account_transactions.STATUS);
+    END LOOP;
+    CLOSE account_transactions;
+  END view_transactions_by_account_id_only;
+
+  PROCEDURE view_latest_5_transactions(p_account_id NUMBER) IS
+    CURSOR latest_5_transactions IS
+      SELECT *
+      FROM (
+        SELECT *
+        FROM TRANSACTION_TABLE
+        WHERE ACCOUNT_ID = p_account_id
+        ORDER BY TIME_STAMP DESC
+      )
+      WHERE ROWNUM <= 5;
+    v_latest_5_transactions latest_5_transactions%ROWTYPE;
+  BEGIN
+    OPEN latest_5_transactions;
+    LOOP
+      FETCH latest_5_transactions INTO v_latest_5_transactions;
+      EXIT WHEN latest_5_transactions%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_latest_5_transactions.TRANSACTION_ID || ', Account ID: ' || v_latest_5_transactions.ACCOUNT_ID || ', Status Code: ' || v_latest_5_transactions.STATUS_CODE || ', Transaction Type: ' || v_latest_5_transactions.TRANSACTION_TYPE || ', Amount: ' || v_latest_5_transactions.AMOUNT || ', Time Stamp: ' || v_latest_5_transactions.TIME_STAMP || ', Transaction Details: ' || v_latest_5_transactions.TRANSACTION_DETAILS || ', Status: ' || v_latest_5_transactions.STATUS);
+    END LOOP;
+    CLOSE latest_5_transactions;
+  END view_latest_5_transactions;
+
+  PROCEDURE view_last_transaction(p_account_id NUMBER) IS
+    CURSOR last_transaction IS
+      SELECT *
+      FROM (
+        SELECT *
+        FROM TRANSACTION_TABLE
+        WHERE ACCOUNT_ID = p_account_id
+        ORDER BY TIME_STAMP DESC
+      )
+      WHERE ROWNUM = 1;
+    v_last_transaction last_transaction%ROWTYPE;
+  BEGIN
+    OPEN last_transaction;
+    FETCH last_transaction INTO v_last_transaction;
+    CLOSE last_transaction;
+
+    DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_last_transaction.TRANSACTION_ID || ', Account ID: ' || v_last_transaction.ACCOUNT_ID || ', Status Code: ' || v_last_transaction.STATUS_CODE || ', Transaction Type: ' || v_last_transaction.TRANSACTION_TYPE || ', Amount: ' || v_last_transaction.AMOUNT || ', Time Stamp: ' || v_last_transaction.TIME_STAMP || ', Transaction Details: ' || v_last_transaction.TRANSACTION_DETAILS || ', Status: ' || v_last_transaction.STATUS);
+  END view_last_transaction;
+  
+  PROCEDURE view_customer_latest_5_transactions(p_customer_id NUMBER) IS
+    CURSOR latest_5_transactions IS
+      SELECT tt.*
+      FROM (
+        SELECT tt.*
+        FROM TRANSACTION_TABLE tt
+        JOIN ACCOUNTS a ON tt.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE a.CUSTOMER_ID = p_customer_id
+        ORDER BY tt.TIME_STAMP DESC
+      ) tt
+      WHERE ROWNUM <= 5;
+    v_latest_5_transactions latest_5_transactions%ROWTYPE;
+  BEGIN
+    OPEN latest_5_transactions;
+    LOOP
+      FETCH latest_5_transactions INTO v_latest_5_transactions;
+      EXIT WHEN latest_5_transactions%NOTFOUND;
+
+      DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_latest_5_transactions.TRANSACTION_ID || ', Account ID: ' || v_latest_5_transactions.ACCOUNT_ID || ', Status Code: ' || v_latest_5_transactions.STATUS_CODE || ', Transaction Type: ' || v_latest_5_transactions.TRANSACTION_TYPE || ', Amount: ' || v_latest_5_transactions.AMOUNT || ', Time Stamp: ' || v_latest_5_transactions.TIME_STAMP || ', Transaction Details: ' || v_latest_5_transactions.TRANSACTION_DETAILS || ', Status: ' || v_latest_5_transactions.STATUS);
+    END LOOP;
+    CLOSE latest_5_transactions;
+  END view_customer_latest_5_transactions;
+
+  PROCEDURE view_customer_last_transaction(p_customer_id NUMBER) IS
+    CURSOR last_transaction IS
+      SELECT tt.*
+      FROM (
+        SELECT tt.*
+        FROM TRANSACTION_TABLE tt
+        JOIN ACCOUNTS a ON tt.ACCOUNT_ID = a.ACCOUNT_ID
+        WHERE a.CUSTOMER_ID = p_customer_id
+        ORDER BY tt.TIME_STAMP DESC
+      ) tt
+      WHERE ROWNUM = 1;
+    v_last_transaction last_transaction%ROWTYPE;
+  BEGIN
+    OPEN last_transaction;
+    FETCH last_transaction INTO v_last_transaction;
+    CLOSE last_transaction;
+
+    DBMS_OUTPUT.PUT_LINE('Transaction ID: ' || v_last_transaction.TRANSACTION_ID || ', Account ID: ' || v_last_transaction.ACCOUNT_ID || ', Status Code: ' || v_last_transaction.STATUS_CODE || ', Transaction Type: ' || v_last_transaction.TRANSACTION_TYPE || ', Amount: ' || v_last_transaction.AMOUNT || ', Time Stamp: ' || v_last_transaction.TIME_STAMP || ', Transaction Details: ' || v_last_transaction.TRANSACTION_DETAILS || ', Status: ' || v_last_transaction.STATUS);
+  END view_customer_last_transaction;
+
+END CUSTOMER_PKG;
+/
+-------------------------------------------------------------------------------------------
