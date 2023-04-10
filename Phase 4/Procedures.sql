@@ -113,3 +113,58 @@ BEGIN
             DBMS_OUTPUT.PUT_LINE('Role already exists.');
 END ADD_NEW_ROLE;
 /
+
+-- Procedure to insert Status_Code
+CREATE OR REPLACE PROCEDURE ADD_NEW_STATUS_CODE (
+    p_status_code             IN STATUS_CODE.STATUS_CODE%TYPE,
+    p_status_code_description IN STATUS_CODE.STATUS_CODE_DESCRIPTION%TYPE
+)
+IS
+    v_status_code_count NUMBER;
+    status_code_exists EXCEPTION;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_status_code_count
+    FROM STATUS_CODE
+    WHERE STATUS_CODE = p_status_code;
+
+    IF v_status_code_count > 0 THEN
+        RAISE status_code_exists;
+    ELSE
+        INSERT INTO STATUS_CODE (STATUS_CODE, STATUS_CODE_DESCRIPTION)
+        VALUES (p_status_code, p_status_code_description);
+    END IF;
+
+    EXCEPTION
+        WHEN status_code_exists THEN
+            DBMS_OUTPUT.PUT_LINE('Status code already exists.');
+END ADD_NEW_STATUS_CODE;
+/
+
+-- Procedure to Insert transaction_type
+CREATE OR REPLACE PROCEDURE ADD_NEW_TRANSACTION_TYPE (
+    p_transaction_type             IN TRANSACTION_TYPE.TRANSACTION_TYPE%TYPE,
+    p_transaction_type_description IN TRANSACTION_TYPE.TRANSACTION_TYPE_DESCRIPTION%TYPE
+)
+IS
+    v_transaction_type_count NUMBER;
+    transaction_type_exists EXCEPTION;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_transaction_type_count
+    FROM TRANSACTION_TYPE
+    WHERE TRANSACTION_TYPE = p_transaction_type;
+
+    IF v_transaction_type_count > 0 THEN
+        RAISE transaction_type_exists;
+    ELSE
+        INSERT INTO TRANSACTION_TYPE (TRANSACTION_TYPE, TRANSACTION_TYPE_DESCRIPTION)
+        VALUES (p_transaction_type, p_transaction_type_description);
+    END IF;
+
+    EXCEPTION
+        WHEN transaction_type_exists THEN
+            DBMS_OUTPUT.PUT_LINE('Transaction type already exists.');
+END ADD_NEW_TRANSACTION_TYPE;
+/
+-------------------------------------------------------------------------------------------
