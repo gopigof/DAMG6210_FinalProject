@@ -246,3 +246,58 @@ CREATE OR REPLACE VIEW V_AGG_HOURLY_FAILED_TRANSACTIONS_BY_BRANCH AS
       AND T.Status = 'Failed'
     GROUP BY B.branch_name, tr.transaction_type
     ORDER BY B.branch_name, tr.transaction_type;
+
+--V_CUSTOMER_ACCOUNT_BALANCES: Fetches all customer information with their
+--account balances and account types, grouped by customer.
+--CREATE VIEW V_CUSTOMER_ACCOUNT_BALANCES AS
+CREATE OR REPLACE VIEW V_CUSTOMER_ACCOUNT_BALANCES AS
+    SELECT c.customer_id, c.first_name, c.last_name, t.account_type, SUM(a.balance) AS total_balance
+    FROM customer c
+             JOIN accounts a ON c.customer_id = a.customer_id
+             JOIN account_type t ON a.account_type = t.account_type_id
+    GROUP BY c.customer_id, c.first_name, c.last_name, a.account_type, t.account_type
+    ORDER BY c.customer_id, c.first_name, c.last_name;
+
+--V_ACCOUNTS_BRANCH_INFO: Fetches all accounts with their branch information
+--including branch name and branch code, grouped by account.
+--CREATE VIEW V_ACCOUNTS_BRANCH_INFO AS
+CREATE OR REPLACE VIEW V_ACCOUNTS_BRANCH_INFO AS
+    SELECT a.account_id,
+           a.customer_id,
+           c.first_name ||' '|| c.last_name as customer_name,
+           t.account_type,
+           a.balance,
+           b.branch_name,
+           b.branch_code
+    FROM accounts a
+             JOIN branch b ON a.branch_id = b.branch_id
+             JOIN customer c ON a.customer_id = c.customer_id
+             JOIN account_type t ON a.account_type = t.account_type_id
+    GROUP BY a.account_id, a.customer_id, c.first_name, c.last_name, t.account_type, a.balance, b.branch_name, b.branch_code
+    ORDER BY a.account_id, a.customer_id;
+
+--V_TRANSACTION_DETAILS: Fetches all transaction information with details including
+--transaction ID, customer account number, transaction amount, account type, and
+--transaction type, grouped by customer.
+CREATE OR REPLACE VIEW V_TRANSACTION_DETAILS AS
+SELECT t.transaction_id, t.account_id, a.customer_id, c.first_name || ' ' || c.last_name AS customer_name, t.amount, ty.account_type, t.time_stamp, tr.transaction_type, t.status
+FROM transaction_table t
+JOIN accounts a ON t.account_id = a.account_id
+JOIN account_type ty ON a.account_type = ty.account_type_id
+JOIN transaction_type tr ON t.transaction_type = tr.transaction_type_id
+JOIN customer c on a.customer_id = c.customer_id
+GROUP BY a.customer_id, t.account_id, t.transaction_id, c.first_name || ' ' || c.last_name, t.amount, ty.account_type, t.time_stamp, tr.transaction_type, t.status
+ORDER BY t.transaction_id;
+
+--V_LOANS_CUSTOMER_INFO: Fetches all loans with customer email, address, and
+--customer information including customer name, branch name, branch code, and loan type
+--descriptions, grouped by customer.
+CREATE OR REPLACE VIEW V_LOANS_CUSTOMER_INFO AS
+SELECT l.loan_id, c.first_name || ' ' || c.last_name AS customer_name, c.email_id, c.address,  b.branch_name, b.branch_code, lt.loan_type_id as loan_type, lt.loan_description AS loan_type_description
+FROM loan l
+JOIN customer c ON l.customer_id = c.customer_id
+JOIN accounts a ON c.customer_id = a.customer_id
+JOIN branch b ON a.branch_id = b.branch_id
+JOIN loan_type lt ON l.loan_type = lt.loan_type_id
+GROUP BY l.loan_id, c.email_id, c.address, c.first_name || ' ' || c.last_name, b.branch_name, b.branch_code, lt.loan_type_id, lt.loan_description
+ORDER BY l.loan_id, c.email_id;
