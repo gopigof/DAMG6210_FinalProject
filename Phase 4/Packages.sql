@@ -465,4 +465,148 @@ CREATE OR REPLACE PACKAGE BODY ACCOUNT_MGMT_PKG AS
 
 END ACCOUNT_MGMT_PKG;
 /
+
 ------------------------------------------------------------------------------------------
+CREATE OR REPLACE PACKAGE LOAN_MGMT_PKG AS
+    -- Check if a loan exists
+    FUNCTION LOAN_EXISTS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE
+    ) RETURN NUMBER;
+    
+    -- Get loan details for a specific loan
+    FUNCTION GET_LOAN_DETAILS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE
+    ) RETURN SYS_REFCURSOR;
+
+    -- Add a new loan
+    PROCEDURE ADD_NEW_LOAN (
+        p_customer_id IN LOAN.CUSTOMER_ID%TYPE,
+        p_loan_type IN LOAN.LOAN_TYPE%TYPE,
+        p_branch_id IN LOAN.BRANCH_ID%TYPE,
+        p_amount IN LOAN.AMOUNT%TYPE,
+        p_interest_rate IN LOAN.INTEREST_RATE%TYPE,
+        p_term_in_months IN LOAN.TERM_IN_MONTHS%TYPE,
+        p_commencement_date IN LOAN.COMMENCEMENT_DATE%TYPE
+    );
+    
+    -- Update loan details
+    PROCEDURE UPDATE_LOAN_DETAILS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE,
+        p_amount IN LOAN.AMOUNT%TYPE DEFAULT NULL,
+        p_interest_rate IN LOAN.INTEREST_RATE%TYPE DEFAULT NULL,
+        p_term_in_months IN LOAN.TERM_IN_MONTHS%TYPE DEFAULT NULL,
+        p_commencement_date IN LOAN.COMMENCEMENT_DATE%TYPE DEFAULT NULL
+    );
+    
+END LOAN_MGMT_PKG;
+/
+
+CREATE OR REPLACE PACKAGE BODY LOAN_MGMT_PKG AS
+    -- Check if a loan exists
+    FUNCTION LOAN_EXISTS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE
+    ) RETURN NUMBER IS
+        v_count NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_count
+        FROM LOAN
+        WHERE LOAN_ID = p_loan_id;
+
+        IF v_count > 0 THEN
+            RETURN 1;
+        ELSE
+            RETURN 0;
+        END IF;
+    END LOAN_EXISTS;
+
+    -- Get loan details for a specific loan
+    FUNCTION GET_LOAN_DETAILS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE
+    ) RETURN SYS_REFCURSOR IS
+        v_loan_details SYS_REFCURSOR;
+    BEGIN
+        OPEN v_loan_details FOR
+        SELECT *
+        FROM LOAN
+        WHERE LOAN_ID = p_loan_id;
+        
+        RETURN v_loan_details;
+    END GET_LOAN_DETAILS;
+    
+    FUNCTION LOAN_WITH_PARAMS_EXISTS (
+        p_customer_id IN LOAN.CUSTOMER_ID%TYPE,
+        p_loan_type IN LOAN.LOAN_TYPE%TYPE,
+        p_amount IN LOAN.AMOUNT%TYPE,
+        p_commencement_date IN LOAN.COMMENCEMENT_DATE%TYPE
+    ) RETURN NUMBER IS
+        v_count NUMBER;
+    BEGIN
+        SELECT COUNT(*)
+        INTO v_count
+        FROM LOAN
+        WHERE CUSTOMER_ID = p_customer_id
+        AND LOAN_TYPE = p_loan_type
+        AND AMOUNT = p_amount
+        AND COMMENCEMENT_DATE = p_commencement_date;
+
+        IF v_count > 0 THEN
+            RETURN 1;
+        ELSE
+            RETURN 0;
+        END IF;
+    END LOAN_WITH_PARAMS_EXISTS;
+    
+    -- add loan
+    PROCEDURE ADD_NEW_LOAN (
+        p_customer_id IN LOAN.CUSTOMER_ID%TYPE,
+        p_loan_type IN LOAN.LOAN_TYPE%TYPE,
+        p_branch_id IN LOAN.BRANCH_ID%TYPE,
+        p_amount IN LOAN.AMOUNT%TYPE,
+        p_interest_rate IN LOAN.INTEREST_RATE%TYPE,
+        p_term_in_months IN LOAN.TERM_IN_MONTHS%TYPE,
+        p_commencement_date IN LOAN.COMMENCEMENT_DATE%TYPE
+    ) IS
+        v_loan_exists NUMBER;
+    BEGIN
+        v_loan_exists := LOAN_WITH_PARAMS_EXISTS(
+            p_customer_id => p_customer_id,
+            p_loan_type => p_loan_type,
+            p_amount => p_amount,
+            p_commencement_date => p_commencement_date
+        );
+
+        IF v_loan_exists = 0 THEN
+            INSERT INTO LOAN (
+                CUSTOMER_ID, LOAN_TYPE, BRANCH_ID, AMOUNT, INTEREST_RATE, TERM_IN_MONTHS, COMMENCEMENT_DATE
+            ) VALUES (
+                p_customer_id, p_loan_type, p_branch_id, p_amount, p_interest_rate, p_term_in_months, p_commencement_date
+            );
+        ELSE
+            RAISE_APPLICATION_ERROR(-20001, 'Loan already exists for the given customer, loan type, amount, and commencement date.');
+        END IF;
+    END ADD_NEW_LOAN;
+    
+    PROCEDURE UPDATE_LOAN_DETAILS (
+        p_loan_id IN LOAN.LOAN_ID%TYPE,
+        p_amount IN LOAN.AMOUNT%TYPE DEFAULT NULL,
+        p_interest_rate IN LOAN.INTEREST_RATE%TYPE DEFAULT NULL,
+        p_term_in_months IN LOAN.TERM_IN_MONTHS%TYPE DEFAULT NULL,
+        p_commencement_date IN LOAN.COMMENCEMENT_DATE%TYPE DEFAULT NULL
+    ) IS
+    BEGIN
+        UPDATE LOAN
+        SET AMOUNT = COALESCE(p_amount, AMOUNT),
+            INTEREST_RATE = COALESCE(p_interest_rate, INTEREST_RATE),
+            TERM_IN_MONTHS = COALESCE(p_term_in_months, TERM_IN_MONTHS),
+            COMMENCEMENT_DATE = COALESCE(p_commencement_date, COMMENCEMENT_DATE) 
+        WHERE LOAN_ID = p_loan_id;
+        
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20002, 'Loan not found with the provided Loan ID.');
+        END IF;
+    END UPDATE_LOAN_DETAILS;
+    
+END LOAN_MGMT_PKG;
+/
+-------------------------------------------------------------------------------------------
