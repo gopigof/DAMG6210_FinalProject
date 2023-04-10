@@ -30,7 +30,7 @@ GROUP BY ty.transaction_type
 ORDER BY ty.transaction_type;
 
 --V_HOURLY_FAILED_TRANSACTION: Fetches all the transactions started in the last
---hour  9PM of 16th March 2023 , which is in a "failureâ€? status.
+--hour  9PM of 16th March 2023 , which is in a "failureï¿½? status.
 CREATE OR REPLACE VIEW V_HOURLY_FAILED_TRANSACTION_16th_March AS
     SELECT ty.transaction_type, COUNT(tr.transaction_id) AS num_transactions, SUM(tr.amount) AS total_amount
     FROM transaction_table tr
@@ -41,7 +41,7 @@ CREATE OR REPLACE VIEW V_HOURLY_FAILED_TRANSACTION_16th_March AS
     ORDER BY ty.transaction_type;
 
 --V_HOURLY_FAILED_TRANSACTION: Fetches all the transactions started in the last
---hour  from the current timestamp , which is in a "failureâ€? status.
+--hour  from the current timestamp , which is in a "failureï¿½? status.
 --CREATE VIEW V_HOURLY_FAILED_TRANSACTION AS
 CREATE OR REPLACE VIEW V_HOURLY_FAILED_TRANSACTION AS
     SELECT ty.transaction_type, COUNT(tr.transaction_id) AS num_transactions, SUM(tr.amount) AS total_amount
@@ -79,7 +79,7 @@ CREATE OR REPLACE VIEW V_AGG_DAILY_TRANSACTIONS_BY_TYPE As
     ORDER BY tr.transaction_type;
 
 --V_DAILY_FAILED_TRANSACTIONS: Fetches all the transactions started in the last
---day from 16th March 2023, which is in a "failure” status.
+--day from 16th March 2023, which is in a "failureï¿½ status.
 CREATE OR REPLACE VIEW V_DAILY_FAILED_TRANSACTIONS_15th_March AS
     SELECT tr.transaction_type, COUNT(T.transaction_id) AS num_transactions, SUM(T.amount) as total_amount
     FROM transaction_table T
@@ -91,7 +91,7 @@ CREATE OR REPLACE VIEW V_DAILY_FAILED_TRANSACTIONS_15th_March AS
     ORDER BY tr.transaction_type;
 
 --V_DAILY_FAILED_TRANSACTIONS: Fetches all the transactions started in the last
---day from current date, which is in a "failure” status.
+--day from current date, which is in a "failureï¿½ status.
 CREATE OR REPLACE VIEW V_DAILY_FAILED_TRANSACTIONS AS
     SELECT tr.transaction_type, COUNT(T.transaction_id) AS num_transactions, SUM(T.amount) as total_amount
     FROM transaction_table T
@@ -102,3 +102,75 @@ CREATE OR REPLACE VIEW V_DAILY_FAILED_TRANSACTIONS AS
     GROUP BY tr.transaction_type
     ORDER BY tr.transaction_type;
     
+
+--V_AGG_DAILY_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last day from 16th March 2023 across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_DAILY_TRANSACTIONS_BY_BRANCH_15th_March AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp) = TRUNC(TO_DATE('16-MAR-2023', 'DD-MON-YYYY')) - 1
+      AND T.Status != 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_DAILY_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last day from current date across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_DAILY_TRANSACTIONS_BY_BRANCH AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp) = TRUNC(SYSDATE) - 1
+      AND T.Status != 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_DAILY_FAILED_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last day from 16th March 2023 across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_DAILY_FAILED_TRANSACTIONS_BY_BRANCH_15th_March AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp) = TRUNC(TO_DATE('16-MAR-2023', 'DD-MON-YYYY')) - 1
+      AND T.Status = 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
+
+--V_AGG_DAILY_FAILED_TRANSACTIONS_BY_BRANCH: Fetch the aggregate of the
+--transactions started within the last day from current date across all the accounts.
+--The returned set should be grouped by the branch from where the transactions originated
+--from.
+CREATE OR REPLACE VIEW V_AGG_DAILY_FAILED_TRANSACTIONS_BY_BRANCH AS
+    SELECT B.branch_name,
+           tr.transaction_type,
+           COUNT(T.transaction_id) AS num_transactions,
+           SUM(T.amount)           as total_amount
+    FROM transaction_table T
+             JOIN transaction_type tr ON T.transaction_type = tr.transaction_type_id
+             JOIN accounts A ON T.account_id = A.account_id
+             JOIN branch B ON A.branch_id = B.branch_id
+    WHERE TRUNC(T.time_stamp) = TRUNC(SYSDATE) - 1
+      AND T.Status = 'Failed'
+    GROUP BY B.branch_name, tr.transaction_type
+    ORDER BY B.branch_name, tr.transaction_type;
