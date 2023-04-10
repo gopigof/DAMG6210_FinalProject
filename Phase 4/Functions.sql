@@ -73,3 +73,23 @@ BEGIN
     RETURN v_loan_count;
 END GET_CUSTOMER_LOAN_COUNT;
 /
+
+CREATE OR REPLACE FUNCTION IS_BALANCE_SUFFICIENT (
+    p_account_id IN ACCOUNTS.ACCOUNT_ID%TYPE,
+    p_amount     IN NUMBER
+) RETURN CHAR
+IS
+    v_balance NUMBER := 0;
+BEGIN
+    SELECT BALANCE
+    INTO v_balance
+    FROM ACCOUNTS
+    WHERE ACCOUNT_ID = p_account_id;
+
+    IF v_balance >= p_amount THEN
+        RETURN 'Yes';
+    ELSE
+        RETURN 'No';
+    END IF;
+END IS_BALANCE_SUFFICIENT;
+/
