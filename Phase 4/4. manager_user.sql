@@ -1,7 +1,7 @@
 SET SERVEROUTPUT ON;
 
 BEGIN
-    DATABASE_ADMIN.MANAGER_PKG.VIEW_EMPLOYEE_DETAILS(620); --mention employee_id
+    DATABASE_ADMIN.MANAGER_PKG.VIEW_EMPLOYEE_DETAILS(620); --mention manager_id
 END;
 /
 
@@ -11,7 +11,7 @@ END;
 /
 
 BEGIN
-    DATABASE_ADMIN.MANAGER_PKG.VIEW_CUSTOMER_BY_ID(620, 1850); --input employee_id and customer_id to retrieve the accounts details if that customer has an account in the employee branch
+    DATABASE_ADMIN.MANAGER_PKG.VIEW_CUSTOMER_BY_ID(620, 1840); --input employee_id and customer_id to retrieve the accounts details if that customer has an account in the employee branch
 END;
 /
 
@@ -23,8 +23,8 @@ END;
 
 BEGIN
     DATABASE_ADMIN.MANAGER_PKG.INSERT_ACCOUNT(
-        P_EMPLOYEE_ID => 620, -- Replace with the employee_id
-        P_CUSTOMER_ID => 1855, -- Replace with the customer_id
+        P_EMPLOYEE_ID => 608, -- Replace with the employee_id
+        P_CUSTOMER_ID => 1850, -- Replace with the customer_id
         P_ACCOUNT_TYPE => 2, -- Replace with the account_type_id
         P_CREATED_DATE => SYSDATE,
         P_BALANCE => 10000,
@@ -38,7 +38,7 @@ END;
 BEGIN
     DATABASE_ADMIN.MANAGER_PKG.UPDATE_CUSTOMER(
         P_EMPLOYEE_ID => 620,
-        P_CUSTOMER_ID => 1805, -- Replace with the customer_id you want to update
+        P_CUSTOMER_ID => 1850, -- Replace with the customer_id you want to update
         P_PHONE_NUMBER => '3244459789'
     );
 END;
@@ -52,7 +52,7 @@ END;
 
 BEGIN
     DATABASE_ADMIN.MANAGER_PKG.UPDATE_ACCOUNT(
-        P_EMPLOYEE_ID => 623, -- Replace with a valid employee_id
+        P_EMPLOYEE_ID => 620, -- Replace with a valid employee_id
         P_ACCOUNT_ID => 101, -- Replace with a valid account_id
         P_ACCOUNT_TYPE => 4, -- Replace with a valid account_type_id (or NULL to keep the existing value)
         P_BALANCE => 15000, -- Replace with a new balance (or NULL to keep the existing value)
@@ -69,13 +69,13 @@ END;
 
 
 BEGIN
-    DATABASE_ADMIN.MANAGER_PKG.VIEW_TRANSACTIONS(P_EMPLOYEE_ID => 623); -- Replace with the employee_id
+    DATABASE_ADMIN.MANAGER_PKG.VIEW_TRANSACTIONS(P_EMPLOYEE_ID => 620); -- Replace with the employee_id
 END;
 /
 
 BEGIN
     DATABASE_ADMIN.MANAGER_PKG.INSERT_TRANSACTION(
-        P_EMPLOYEE_ID => 623, -- Replace with the employee_id
+        P_EMPLOYEE_ID => 620, -- Replace with the employee_id
         P_ACCOUNT_ID => 101, -- Replace with the account_id
         P_STATUS_CODE => '00', -- Replace with the status_code
         P_TRANSACTION_TYPE => 1, -- Replace with the transaction_type_id
@@ -88,12 +88,26 @@ END;
 /
 
 BEGIN
-    DATABASE_ADMIN.MANAGER_PKG.VIEW_LOANS(P_EMPLOYEE_ID => 623); -- Replace with the employee_id
+    DATABASE_ADMIN.MANAGER_PKG.INSERT_TRANSACTION(
+        P_EMPLOYEE_ID => 608, -- Replace with the employee_id
+        P_ACCOUNT_ID => 101, -- Replace with the account_id
+        P_STATUS_CODE => '00', -- Replace with the status_code
+        P_TRANSACTION_TYPE => 1, -- Replace with the transaction_type_id
+        P_AMOUNT => 1000,
+        P_TIME_STAMP => SYSTIMESTAMP,
+        P_TRANSACTION_DETAILS => 'Online Shopping',
+        P_STATUS => 'Completed'
+    );
 END;
 /
 
 BEGIN
-    DATABASE_ADMIN.MANAGER_PKG.ADD_LOAN(623, 1855, 1, 15000, 6.0, 48, TO_DATE('2023-01-15', 'YYYY-MM-DD'));
+    DATABASE_ADMIN.MANAGER_PKG.VIEW_LOANS(P_EMPLOYEE_ID => 620); -- Replace with the employee_id
+END;
+/
+
+BEGIN
+    DATABASE_ADMIN.MANAGER_PKG.ADD_LOAN(620, 1855, 1, 15000, 6.0, 48, TO_DATE('2023-01-15', 'YYYY-MM-DD'));
 END;
 /
 
@@ -146,7 +160,7 @@ END;
 /
 
 BEGIN
-   DATABASE_ADMIN.MANAGER_PKG.DELETE_CUSTOMER_ACCOUNT(102,623);
+   DATABASE_ADMIN.MANAGER_PKG.DELETE_CUSTOMER_ACCOUNT(102,620);
 END;
 /
 
