@@ -2547,6 +2547,11 @@ CREATE OR REPLACE PACKAGE EMPLOYEE_PKG AS
         P_COMMENCEMENT_DATE LOAN.COMMENCEMENT_DATE%TYPE
     );
     
+    PROCEDURE DELETE_CUSTOMER_ACCOUNT (
+        p_account_id ACCOUNTS.ACCOUNT_ID%TYPE,
+        p_employee_id EMPLOYEE.EMPLOYEE_ID%TYPE
+    );
+    
 END EMPLOYEE_PKG;
 /
 
@@ -2909,6 +2914,78 @@ CREATE OR REPLACE PACKAGE BODY EMPLOYEE_PKG AS
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
     END ADD_LOAN;
     
+    PROCEDURE DELETE_CUSTOMER_ACCOUNT (
+        p_account_id ACCOUNTS.ACCOUNT_ID%TYPE,
+        p_employee_id EMPLOYEE.EMPLOYEE_ID%TYPE
+    ) IS
+        v_account_count NUMBER;
+        v_employee_branch NUMBER;
+        v_account_branch NUMBER;
+        account_exists EXCEPTION;
+        unauthorized_branch EXCEPTION;
+        account_not_found EXCEPTION;
+        employee_not_found EXCEPTION;
+    BEGIN
+
+    -- Get the branch_id of the employee
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_employee_branch
+            FROM EMPLOYEE
+            WHERE EMPLOYEE_ID = p_employee_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE employee_not_found;
+        END;
+        
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_account_branch
+            FROM ACCOUNTS
+            WHERE ACCOUNT_ID = p_account_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE account_not_found;
+        END;    
+
+        BEGIN
+            SELECT COUNT(*)
+            INTO v_account_count
+            FROM ACCOUNTS A
+            JOIN BRANCH B ON A.BRANCH_ID = B.BRANCH_ID
+            WHERE A.ACCOUNT_ID = p_account_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE account_not_found;
+        END;
+      
+        IF v_account_count = 0 THEN
+            RAISE account_exists;
+        ELSE
+        -- Check if the account is from the same branch as the employee
+            IF v_account_branch != v_employee_branch THEN
+                RAISE unauthorized_branch;
+            END IF;
+
+            DELETE FROM transaction_table T WHERE T.ACCOUNT_ID = p_account_id;
+        
+            DELETE FROM accounts A WHERE A.ACCOUNT_ID = p_account_id;
+            
+            DBMS_OUTPUT.PUT_LINE('Customer Account deleted successfully.');
+        
+        END IF;
+
+        EXCEPTION
+            WHEN account_exists THEN
+                RAISE_APPLICATION_ERROR(-20002, 'An account with the customer ID does not exist.');
+            WHEN unauthorized_branch THEN
+                RAISE_APPLICATION_ERROR(-20003, 'The employee does not have the authority to delete an account from a different branch.');
+            WHEN account_not_found THEN
+                RAISE_APPLICATION_ERROR(-20019, 'Account ID does not exist.');
+            WHEN employee_not_found THEN
+                RAISE_APPLICATION_ERROR(-20029, 'Employee ID does not exist.');    
+    END DELETE_CUSTOMER_ACCOUNT;
+    
 END EMPLOYEE_PKG;
 /
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -3032,7 +3109,17 @@ CREATE OR REPLACE PACKAGE MANAGER_PKG AS
         P_STATE_NAME EMPLOYEE.STATE_NAME%TYPE DEFAULT NULL,
         P_MANAGER_ID EMPLOYEE.MANAGER_ID%TYPE DEFAULT NULL
      );
-
+     
+     PROCEDURE DELETE_CUSTOMER_ACCOUNT (
+        p_account_id      IN ACCOUNTS.ACCOUNT_ID%TYPE,
+        p_employee_id       IN EMPLOYEE.EMPLOYEE_ID%TYPE
+    );
+     
+    PROCEDURE DELETE_EMPLOYEE (
+        p_manager_id      IN EMPLOYEE.EMPLOYEE_ID%TYPE,
+        p_employee_id       IN EMPLOYEE.EMPLOYEE_ID%TYPE
+    );
+    
 END MANAGER_PKG;
 /
 
@@ -3493,6 +3580,125 @@ CREATE OR REPLACE PACKAGE BODY MANAGER_PKG AS
       DBMS_OUTPUT.PUT_LINE('You do not have the required permissions to update an employee in this branch.');
     END IF;
   END UPDATE_EMPLOYEE;
+  
+  PROCEDURE DELETE_CUSTOMER_ACCOUNT (
+        p_account_id ACCOUNTS.ACCOUNT_ID%TYPE,
+        p_employee_id EMPLOYEE.EMPLOYEE_ID%TYPE
+    ) IS
+        v_account_count NUMBER;
+        v_employee_branch NUMBER;
+        v_account_branch NUMBER;
+        account_exists EXCEPTION;
+        unauthorized_branch EXCEPTION;
+        account_not_found EXCEPTION;
+        employee_not_found EXCEPTION;
+    BEGIN
+
+    -- Get the branch_id of the employee
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_employee_branch
+            FROM EMPLOYEE
+            WHERE EMPLOYEE_ID = p_employee_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE employee_not_found;
+        END;
+        
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_account_branch
+            FROM ACCOUNTS
+            WHERE ACCOUNT_ID = p_account_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE account_not_found;
+        END;    
+
+        BEGIN
+            SELECT COUNT(*)
+            INTO v_account_count
+            FROM ACCOUNTS A
+            JOIN BRANCH B ON A.BRANCH_ID = B.BRANCH_ID
+            WHERE A.ACCOUNT_ID = p_account_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE account_not_found;
+        END;
+      
+        IF v_account_count = 0 THEN
+            RAISE account_exists;
+        ELSE
+        -- Check if the account is from the same branch as the employee
+            IF v_account_branch != v_employee_branch THEN
+                RAISE unauthorized_branch;
+            END IF;
+
+            DELETE FROM transaction_table T WHERE T.ACCOUNT_ID = p_account_id;
+        
+            DELETE FROM accounts A WHERE A.ACCOUNT_ID = p_account_id;
+            
+            DBMS_OUTPUT.PUT_LINE('Customer Account deleted successfully.');
+        
+        END IF;
+
+        EXCEPTION
+            WHEN account_exists THEN
+                RAISE_APPLICATION_ERROR(-20002, 'An account with the customer ID does not exist.');
+            WHEN unauthorized_branch THEN
+                RAISE_APPLICATION_ERROR(-20003, 'The employee does not have the authority to delete an account from a different branch.');
+            WHEN account_not_found THEN
+                RAISE_APPLICATION_ERROR(-20019, 'Account ID does not exist.');
+            WHEN employee_not_found THEN
+                RAISE_APPLICATION_ERROR(-20029, 'Employee ID does not exist.');    
+    END DELETE_CUSTOMER_ACCOUNT;
+
+    PROCEDURE DELETE_EMPLOYEE (
+        p_manager_id  IN EMPLOYEE.EMPLOYEE_ID%TYPE,
+        p_employee_id IN EMPLOYEE.EMPLOYEE_ID%TYPE
+    ) IS
+        v_manager_branch NUMBER;
+        v_employee_branch NUMBER;
+        manager_not_found EXCEPTION;
+        employee_not_found EXCEPTION;
+        different_branch EXCEPTION;
+    BEGIN
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_manager_branch
+            FROM EMPLOYEE
+            WHERE EMPLOYEE_ID = p_manager_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE manager_not_found;
+        END;
+
+        BEGIN
+            SELECT BRANCH_ID
+            INTO v_employee_branch
+            FROM EMPLOYEE
+            WHERE EMPLOYEE_ID = p_employee_id;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE employee_not_found;
+        END;
+
+        IF v_manager_branch != v_employee_branch THEN
+            RAISE different_branch;
+        END IF;
+
+        DELETE FROM EMPLOYEE WHERE EMPLOYEE_ID = p_employee_id;
+        
+        DBMS_OUTPUT.PUT_LINE('Employee deleted successfully.');
+
+    EXCEPTION
+        WHEN employee_not_found THEN
+            RAISE_APPLICATION_ERROR(-20002, 'No employee found the provided employee_id');
+        WHEN manager_not_found THEN
+            RAISE_APPLICATION_ERROR(-20002, 'No manager exists with the provided Employee_id.');
+        WHEN different_branch THEN
+            RAISE_APPLICATION_ERROR(-20003, 'The manager and employee are from different branches.');
+    END DELETE_EMPLOYEE;
     
 END MANAGER_PKG;
 /
